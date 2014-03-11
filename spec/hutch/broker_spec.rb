@@ -49,7 +49,7 @@ describe Hutch::Broker do
 
       its(:connection) { should be_a Bunny::Session }
       its(:channel)    { should be_a Bunny::Channel }
-      its(:exchange)   { should be_a Bunny::Exchange }
+      its(:exchange_pool) { should include(Hutch::Config.get(:mq_exchange)) }
     end
 
     context 'when given invalid details' do
@@ -119,7 +119,6 @@ describe Hutch::Broker do
   end
 
   describe '#bind_queue' do
-
     around { |example| broker.connect { example.run } }
 
     let(:routing_keys) { %w( a b c ) }
@@ -217,6 +216,18 @@ describe Hutch::Broker do
             broker.exchange.should_receive(:publish).with('"message"', hash_including(app_id: 'app'))
             broker.publish('test.key', 'message')
           end
+        end
+      end
+
+      context 'when an exchange is specified' do
+        it 'creates a new exchange and stores it in the pool' do
+          expect { broker.publish('test.key', 'message', exchange: 'new-exchange') }.
+            to change { broker.exchange_pool.count }.by +1
+        end
+
+        it 'publishes to that exchange' do
+          broker.exchange('new-exchange').should_receive(:publish).once
+          broker.publish('test.key', 'message', exchange: 'new-exchange')
         end
       end
     end

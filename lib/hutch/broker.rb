@@ -8,7 +8,7 @@ module Hutch
   class Broker
     include Logging
 
-    attr_accessor :connection, :channel, :exchange, :api_client
+    attr_accessor :connection, :channel, :api_client
 
     def initialize(config = nil)
       @config = config || Hutch::Config
@@ -27,7 +27,8 @@ module Hutch
     def disconnect
       @channel.close    if @channel
       @connection.close if @connection
-      @channel, @connection, @exchange, @api_client = nil, nil, nil, nil
+      exchange_pool.clear
+      @channel, @connection, @api_client = nil, nil, nil
     end
 
     # Connect to RabbitMQ via AMQP. This sets up the main connection and
@@ -37,12 +38,7 @@ module Hutch
       open_connection!
       open_channel!
 
-      exchange_name = @config[:mq_exchange]
-      logger.info "using topic exchange '#{exchange_name}'"
-
-      with_bunny_precondition_handler('exchange') do
-        @exchange = @channel.topic(exchange_name, durable: true)
-      end
+      declare_exchange(@config[:mq_exchange])
     end
 
     def open_connection!
@@ -118,20 +114,22 @@ module Hutch
     # Bind a queue to the broker's exchange on the routing keys provided. Any
     # existing bindings on the queue that aren't present in the array of
     # routing keys will be unbound.
-    def bind_queue(queue, routing_keys)
+    def bind_queue(queue, routing_keys, exchange_name = nil)
+      target_exchange = exchange(exchange_name)
+
       # Find the existing bindings, and unbind any redundant bindings
       queue_bindings = bindings.select { |dest, keys| dest == queue.name }
       queue_bindings.each do |dest, keys|
         keys.reject { |key| routing_keys.include?(key) }.each do |key|
           logger.debug "removing redundant binding #{queue.name} <--> #{key}"
-          queue.unbind(@exchange, routing_key: key)
+          queue.unbind(target_exchange, routing_key: key)
         end
       end
 
       # Ensure all the desired bindings are present
       routing_keys.each do |routing_key|
         logger.debug "creating binding #{queue.name} <--> #{routing_key}"
-        queue.bind(@exchange, routing_key: routing_key)
+        queue.bind(target_exchange, routing_key: routing_key)
       end
     end
 
@@ -159,6 +157,8 @@ module Hutch
     def publish(routing_key, message, properties = {})
       ensure_connection!(routing_key, message)
 
+      publishing_exchange = exchange(properties.delete(:exchange))
+
       non_overridable_properties = {
         routing_key: routing_key,
         timestamp: Time.now.to_i,
@@ -166,14 +166,36 @@ module Hutch
       }
       properties[:message_id] ||= generate_id
 
-      logger.info("publishing message '#{message.inspect}' to #{routing_key}")
-      @exchange.publish(JSON.dump(message), {persistent: true}.
+      logger.info("publishing message '#{message.inspect}' to #{routing_key} on #{publishing_exchange.name}")
+      publishing_exchange.publish(JSON.dump(message), {persistent: true}.
         merge(properties).
         merge(global_properties).
         merge(non_overridable_properties))
     end
 
+    def exchange(exchange_name = nil)
+      exchange_pool.fetch(exchange_name || @config[:mq_exchange]) do |new_name|
+        declare_exchange(new_name)
+      end
+    end
+
+    def exchange_pool
+      @pool ||= Hash.new
+    end
+
+
     private
+
+
+    def declare_exchange(name)
+      logger.info "creating topic exchange '#{name}'"
+
+      with_bunny_precondition_handler('exchange') do
+        @channel.topic(name, durable: true).tap do |exchange|
+          exchange_pool[name] = exchange
+        end
+      end
+    end
 
     def raise_publish_error(reason, routing_key, message)
       msg = "Unable to publish - #{reason}. Message: #{message.inspect}, Routing key: #{routing_key}."

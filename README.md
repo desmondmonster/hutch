@@ -14,6 +14,12 @@ To install with RubyGems:
 $ gem install hutch
 ```
 
+## Fork Notes
+
+This fork adds the ability to publish to many exchanges on your broker.  See the 'Producers'
+section below for more info.
+
+
 ## Project Maturity
 
 Hutch is a relatively young project that was extracted from production systems.
@@ -159,6 +165,22 @@ libraries.
 Hutch.connect
 Hutch.publish('routing.key', subject: 'payment', action: 'received')
 ```
+
+This fork allows you to publish to many different exchanges on the same broker,
+which is useful if you have different exchanges for logging, events, worker queues, etc.
+Specify the name of the exchange by adding an `exchange: '<your-exchange-name>'` option.
+A topic exchange will be declared, if it doesn't exist, and the message will be published there.
+Omitting the `exchange` option simply publishes to whatever exchange you 
+set in your configuration, making this library a drop-in replacement for the original branch.
+
+
+```ruby
+Hutch.publish('routing.key', subject: 'payment', action: 'received') # => publishes to exchange specified in configs
+Hutch.publish('routing.key', subject: 'payment', action: 'received', exchange: 'events') # => declares and publishes to exchange named 'events'
+```
+
+The known exchanges are maintained in an exchange pool so you only incur the 
+connection cost the first time you publish.
 
 ### Writing Well-Behaved Publishers
 

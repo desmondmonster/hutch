@@ -14,11 +14,6 @@ To install with RubyGems:
 $ gem install hutch
 ```
 
-## Project Maturity
-
-Hutch is a relatively young project that was extracted from production systems.
-
-
 ## Overview
 
 Hutch is a conventions-based framework for writing services that communicate
@@ -27,6 +22,12 @@ distribution and makes some assumptions about how consumers and publishers
 should work.
 
 Hutch uses [Bunny](http://rubybunny.info) under the hood.
+
+## Fork Notes
+
+This fork adds support for connecting to multiple brokers, running consumers
+from within a Padrino app, and a handful of other tweaks.  See the Producers
+section for more info.
 
 
 ## Defining Consumers
@@ -158,10 +159,25 @@ Hutch includes a `publish` method for sending messages to Hutch consumers. When
 possible, this should be used, rather than directly interfacing with RabbitMQ
 libraries.
 
+This fork allows you to publish to many different exchanges on your broker, which
+is useful if you have separate exchanges for events, logs, worker queues, etc.
+Simply add an `exchange: '<exchange-name>'` option to the `publish` method and
+Hutch will declare it as a topic exchange, if it hasn't been declared already,
+and publish your message there.  Omitting this option will publish to the 
+exchange declared in your Hutch configuration, making this branch a drop-in
+replacement for the original.
+
 ```ruby
 Hutch.connect
-Hutch.publish('routing.key', subject: 'payment', action: 'received')
+Hutch.publish('routing.key', subject: 'payment', action: 'received') # => publishes to exchange specified in configs
+Hutch.publish('routing.key', subject: 'payment', action: 'received', exchange: 'events') # => publishes to exchange named 'events'
 ```
+
+The exchange is declared the first time you publish to a named exchange in this way.
+Nothing else needs to be done to connect to it.  Hutch maintains a pool of known 
+exchanges under the hood, so you only incur the connection cost the first time you
+publish.
+
 
 ### Writing Well-Behaved Publishers
 

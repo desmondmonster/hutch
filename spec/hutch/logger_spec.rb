@@ -15,7 +15,7 @@ describe Hutch::Logging do
     end
 
     context 'with a custom logger' do
-      let(:dummy_logger) { mock("Dummy logger", warn: true, info: true) }
+      let(:dummy_logger) { double("Dummy logger", warn: true, info: true) }
       after { Hutch::Logging.setup_logger }
 
       it "users the custom logger" do

@@ -23,7 +23,7 @@ module Hutch
         mq_api_ssl: false,
         log_level: Logger::INFO,
         require_paths: [],
-        autoload_rails: true,
+        autoload_app: true,
         error_handlers: [Hutch::ErrorHandlers::Logger.new],
         namespace: nil,
         channel_prefetch: 0

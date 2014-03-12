@@ -108,8 +108,8 @@ usage: hutch [options]
         --mq-api-port PORT           Set the RabbitMQ API port
     -s, --[no-]mq-api-ssl            Use SSL for the RabbitMQ API
         --config FILE                Load Hutch configuration from a file
-        --require PATH               Require a Rails app or path
-        --[no-]autoload-rails        Require the current rails app directory
+        --require PATH               Require a Rails or Padrino app or path
+        --[no-]autoload-app          Require the current app directory
     -q, --quiet                      Quiet logging
     -v, --verbose                    Verbose logging
         --version                    Print the version and exit
@@ -136,19 +136,20 @@ run-time customization.
 
 ### Loading Consumers
 
-Using Hutch with a Rails app is simple. Either start Hutch in the working
-directory of a Rails app, or pass the path to a Rails app in with the
+Hutch can be easily used with a Rails or Padrino app. Either start Hutch in the working
+directory of the app, or pass the path to an app in with the
 `--require` option. Consumers defined in Rails apps should be placed with in
 the `app/consumers/` directory, to allow them to be auto-loaded when Rails
-boots.
+boots.  Consumers in a Padrino app should be placed in `shared/lib/consumers`.
 
 To require files that define consumers manually, simply pass each file as an
 option to `--require`. Hutch will automatically detect whether you've provided
 a Rails app or a standard file, and take the appropriate behaviour:
 
 ```bash
-$ hutch --require path/to/rails-app  # loads a rails app
+$ hutch --require path/to/app        # loads a rails or padrino app
 $ hutch --require path/to/file.rb    # loads a ruby file
+$ hutch                              # loads the current directory as a rails/padrino app
 ```
 
 ## Producers

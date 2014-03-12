@@ -14,7 +14,7 @@ module Hutch
 
       Hutch.logger.info "hutch booted with pid #{Process.pid}"
 
-      if load_app && start_work_loop == :success
+      if load! && start_work_loop == :success
         # If we got here, the worker was shut down nicely
         Hutch.logger.info 'hutch shut down gracefully'
         exit 0
@@ -24,14 +24,15 @@ module Hutch
       end
     end
 
-    def load_app
-      # Try to load a Rails app in the current directory
-      load_rails_app('.') if Hutch::Config.autoload_rails
-      Hutch::Config.require_paths.each do |path|
-        # See if each path is a Rails app. If so, try to load it.
-        next if load_rails_app(path)
+    def load!
+      # Try to load an app in the current directory
+      load_app_from_directory('.') if Hutch::Config.autoload_app
 
-        # Given path is not a Rails app, try requiring it as a file
+      Hutch::Config.require_paths.each do |path|
+        # See if each path is an app. If so, try to load it.
+        next if load_app_from_directory(path)
+
+        # Given path is not an app, try requiring it as a file
         logger.info "requiring '#{path}'"
         begin
           # Need to add '.' to load path for relative requires
@@ -57,20 +58,33 @@ module Hutch
       true
     end
 
-    def load_rails_app(path)
+    def load_app_from_directory(tld)
       # path should point to the app's top level directory
-      if File.directory?(path)
-        # Smells like a Rails app if it's got a config/environment.rb file
-        rails_path = File.expand_path(File.join(path, 'config/environment.rb'))
-        if File.exists?(rails_path)
-          logger.info "found rails project (#{path}), booting app"
-          ENV['RACK_ENV'] ||= ENV['RAILS_ENV'] || 'development'
-          require rails_path
-          ::Rails.application.eager_load!
-          return true
-        end
+      return false unless File.directory?(tld)
+
+      load_padrino_app(tld) or
+        load_rails_app(tld)
+    end
+
+    def load_padrino_app(path)
+      if File.exists?(File.expand_path(File.join(path, 'config/apps.rb'))) # canary
+        padrino_path = File.expand_path(File.join(path, 'config/boot.rb'))
+        logger.info "found padrino project (#{path}), booting app"
+        ENV['RACK_ENV'] ||= 'development'
+        require padrino_path
+        true
       end
-      false
+    end
+
+    def load_rails_app(path)
+      rails_path = File.expand_path(File.join(path, 'config/environment.rb'))
+      if File.exists?(rails_path)
+        logger.info "found rails project (#{path}), booting app"
+        ENV['RACK_ENV'] ||= ENV['RAILS_ENV'] || 'development'
+        require rails_path
+        ::Rails.application.eager_load!
+        true
+      end
     end
 
     # Kick off the work loop. This method returns when the worker is shut down
@@ -150,12 +164,12 @@ module Hutch
           end
         end
 
-        opts.on('--require PATH', 'Require a Rails app or path') do |path|
+        opts.on('--require PATH', 'Require an app or path') do |path|
           Hutch::Config.require_paths << path
         end
 
-        opts.on('--[no-]autoload-rails', 'Require the current rails app directory') do |autoload_rails|
-          Hutch::Config.autoload_rails = autoload_rails
+        opts.on('--[no-]autoload-app', 'Require the current app directory (Rails or Padrino)') do |autoload_app|
+          Hutch::Config.autoload_app = autoload_app
         end
 
         opts.on('-q', '--quiet', 'Quiet logging') do

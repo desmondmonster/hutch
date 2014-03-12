@@ -72,7 +72,7 @@ describe Hutch::Config do
     let(:host) { 'broker.yourhost.com' }
     let(:username) { 'calvin' }
     let(:file) do
-      Tempfile.new('configs.yaml').tap do |t|
+      Tempfile.new('configs.yaml', encoding: 'UTF-8').tap do |t|
         t.write(YAML.dump(config_data))
         t.rewind
       end
@@ -94,6 +94,15 @@ describe Hutch::Config do
         Hutch::Config.load_from_file(file)
         Hutch::Config.mq_host.should eq host
         Hutch::Config.mq_username.should eq username
+      end
+    end
+
+    context 'when ruby code is interpolated in the yaml' do
+      let(:config_data) { { mq_host: "<%= 'my host' %>" } }
+
+      it 'correctly parses the code' do
+        Hutch::Config.load_from_file(file)
+        Hutch::Config.mq_host.should eq 'my host'
       end
     end
   end

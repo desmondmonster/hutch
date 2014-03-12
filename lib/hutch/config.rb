@@ -57,7 +57,7 @@ module Hutch
     end
 
     def self.load_from_file(file)
-      YAML.load(file).each do |attr, value|
+      YAML.load(ERB.new(file.read).result).each do |attr, value|
         Hutch::Config.send("#{attr}=", value)
       end
     end

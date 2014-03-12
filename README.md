@@ -119,16 +119,18 @@ usage: hutch [options]
 The first three are for configuring which RabbitMQ instance to connect to.
 `--require` is covered in the next section. Configurations can also be
 specified in a YAML file for convenience by passing the file location
-to the --config option.  The file should look like:
+to the `--config` option.  The file should look like:
 
 ```yaml
 mq_username: peter
 mq_password: rabbit
 mq_host: broker.yourhost.com
+mq_vhost: <%= ENV['your_app'] == 'production' ? 'production' : '/' %>
 ```
 
-Passing a setting as a command-line option will overwrite what's specified
-in the config file, allowing for easy customization.
+Note the hypens are now underscores.  Passing a setting as a command-line
+option will overwrite what's specified in the config file, allowing for
+run-time customization.
 
 
 

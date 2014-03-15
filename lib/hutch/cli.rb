@@ -3,6 +3,7 @@ require 'optparse'
 require 'hutch/logging'
 require 'hutch/exceptions'
 require 'hutch/config'
+require 'hutch/launcher'
 
 module Hutch
   class CLI
@@ -11,6 +12,8 @@ module Hutch
     # Run a Hutch worker with the command line interface.
     def run
       parse_options
+
+      Hutch::Launcher.daemonize! if Hutch::Config.daemonize
 
       Hutch.logger.info "hutch booted with pid #{Process.pid}"
 
@@ -154,6 +157,10 @@ module Hutch
 
         opts.on("-s", "--[no-]mq-api-ssl", 'Use SSL for the RabbitMQ API') do |api_ssl|
           Hutch.config.mq_api_ssl = api_ssl
+        end
+
+        opts.on('-d', '--daemonize', 'Run Hutch as a background process') do
+          Hutch::Config.daemonize = true
         end
 
         opts.on('--config FILE', 'Load Hutch configuration from a file') do |file|

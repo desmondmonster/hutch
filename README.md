@@ -25,9 +25,9 @@ Hutch uses [Bunny](http://rubybunny.info) under the hood.
 
 ## Fork Notes
 
-This fork adds support for connecting to multiple brokers, running consumers
-from within a Padrino app, and a handful of other tweaks.  See the Producers
-section for more info.
+This fork adds support for connecting to multiple brokers, daemonizing the
+Hutch executable, running consumers from within a Padrino project, and
+a handful of other tweaks
 
 
 ## Defining Consumers
@@ -108,6 +108,7 @@ usage: hutch [options]
         --mq-api-host HOST           Set the RabbitMQ API host
         --mq-api-port PORT           Set the RabbitMQ API port
     -s, --[no-]mq-api-ssl            Use SSL for the RabbitMQ API
+    -d, --daemonize                  Run Hutch as a background process
         --config FILE                Load Hutch configuration from a file
         --require PATH               Require a Rails or Padrino app or path
         --[no-]autoload-app          Require the current app directory
@@ -120,14 +121,15 @@ usage: hutch [options]
 
 The first three are for configuring which RabbitMQ instance to connect to.
 `--require` is covered in the next section. Configurations can also be
-specified in a YAML file for convenience by passing the file location
-to the `--config` option.  The file should look like:
+specified in a YAML file by passing the file location to the `--config`
+option.  This is recommended over passing many arguments on the command line,
+especially when running Hutch as a daemon.  The file should look like:
 
 ```yaml
 mq_username: peter
 mq_password: rabbit
 mq_host: broker.yourhost.com
-mq_vhost: <%= ENV['your_app'] == 'production' ? 'production' : '/' %>
+mq_vhost: <%= ENV['RACK_ENV'] == 'production' ? 'production' : '/' %>
 ```
 
 Note the hypens are now underscores.  Passing a setting as a command-line
@@ -211,6 +213,17 @@ AMQP.connect(host: config[:host]) do |connection|
   exchange.publish(message, routing_key: 'test', persistent: true)
 end
 ```
+
+## Running in the Background
+
+Hutch can be run as a daemon by passing the `-d` or `--daemonize` option to
+the `hutch` command.  If you do this, it's a good idea to set a logfile
+for Hutch to send output to, otherwise your output will be redirected
+to `/dev/null` and the messages lost.
+
+A pidfile will be written to `tmp/hutch.pid`.  You can change the location
+by adding a `pidfile: <your-pidfile>` setting to your config file.
+
 
 ## Supported RabbitMQ Versions
 

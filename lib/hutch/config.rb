@@ -27,7 +27,9 @@ module Hutch
         autoload_app: true,
         error_handlers: [Hutch::ErrorHandlers::Logger.new],
         namespace: nil,
-        channel_prefetch: 0
+        channel_prefetch: 0,
+        daemonize: false,
+        pidfile: 'tmp/hutch.pid'
       }
     end
 

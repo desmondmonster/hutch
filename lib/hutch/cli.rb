@@ -172,6 +172,10 @@ module Hutch
           Hutch::Config.autoload_app = autoload_app
         end
 
+        opts.on('--logfile FILE', 'Log output to a file') do |file|
+          Hutch::Config.logfile = file
+        end
+
         opts.on('-q', '--quiet', 'Quiet logging') do
           Hutch::Config.log_level = Logger::WARN
         end

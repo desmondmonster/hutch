@@ -111,6 +111,7 @@ usage: hutch [options]
         --config FILE                Load Hutch configuration from a file
         --require PATH               Require a Rails or Padrino app or path
         --[no-]autoload-app          Require the current app directory
+        --logfile FILE               Log output to a file
     -q, --quiet                      Quiet logging
     -v, --verbose                    Verbose logging
         --version                    Print the version and exit

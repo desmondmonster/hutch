@@ -22,6 +22,7 @@ module Hutch
         mq_api_port: 15672,
         mq_api_ssl: false,
         log_level: Logger::INFO,
+        logfile: $stdout,
         require_paths: [],
         autoload_app: true,
         error_handlers: [Hutch::ErrorHandlers::Logger.new],

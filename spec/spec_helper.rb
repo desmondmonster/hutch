@@ -14,7 +14,7 @@ require 'hutch'
 require 'logger'
 
 RSpec.configure do |config|
-  config.before(:all) { Hutch::Config.log_level = Logger::FATAL }
+  config.before(:all) { Hutch.config.log_level = Logger::FATAL }
 end
 
 # Constants (classes, etc) defined within a block passed to this method
@@ -26,9 +26,5 @@ ensure
   (Object.constants - existing_constants).each do |constant|
     Object.send(:remove_const, constant)
   end
-end
-
-def deep_copy(obj)
-  Marshal.load(Marshal.dump(obj))
 end
 

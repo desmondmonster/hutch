@@ -11,7 +11,7 @@ module Hutch
     attr_accessor :connection, :channel, :api_client
 
     def initialize(config = nil)
-      @config = config || Hutch::Config
+      @config = config || Hutch.config
     end
 
     def connect(options = {})

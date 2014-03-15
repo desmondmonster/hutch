@@ -9,10 +9,10 @@ module Hutch
       end
     end
 
-    def self.setup_logger(target = Hutch::Config.logfile)
+    def self.setup_logger(target = Hutch.config.logfile)
       require 'hutch/config'
       @logger = Logger.new(target)
-      @logger.level = Hutch::Config.log_level
+      @logger.level = Hutch.config.log_level
       @logger.formatter = HutchFormatter.new
       @logger
     end

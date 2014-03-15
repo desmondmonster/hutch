@@ -26,9 +26,9 @@ module Hutch
 
     def load!
       # Try to load an app in the current directory
-      load_app_from_directory('.') if Hutch::Config.autoload_app
+      load_app_from_directory('.') if Hutch.config.autoload_app
 
-      Hutch::Config.require_paths.each do |path|
+      Hutch.config.require_paths.each do |path|
         # See if each path is an app. If so, try to load it.
         next if load_app_from_directory(path)
 
@@ -52,7 +52,7 @@ module Hutch
       # handlers are set up. Due to this, we never got any Sentry notifications
       # when an error occurred in any of the consumers.
       if defined?(Raven)
-        Hutch::Config[:error_handlers] << Hutch::ErrorHandlers::Sentry.new
+        Hutch.config[:error_handlers] << Hutch::ErrorHandlers::Sentry.new
       end
 
       true
@@ -104,88 +104,88 @@ module Hutch
         opts.banner = 'usage: hutch [options]'
 
         opts.on('--mq-host HOST', 'Set the RabbitMQ host') do |host|
-          Hutch::Config.mq_host = host
+          Hutch.config.mq_host = host
         end
 
         opts.on('--mq-port PORT', 'Set the RabbitMQ port') do |port|
-          Hutch::Config.mq_port = port
+          Hutch.config.mq_port = port
         end
 
         opts.on("-t", "--[no-]mq-tls", 'Use TLS for the AMQP connection') do |tls|
-          Hutch::Config.mq_tls = tls
+          Hutch.config.mq_tls = tls
         end
 
         opts.on('--mq-tls-cert FILE', 'Certificate  for TLS client verification') do |file|
           abort "Certificate file '#{file}' not found" unless File.exists?(file)
-          Hutch::Config.mq_tls_cert = file
+          Hutch.config.mq_tls_cert = file
         end
 
         opts.on('--mq-tls-key FILE', 'Private key for TLS client verification') do |file|
           abort "Private key file '#{file}' not found" unless File.exists?(file)
-          Hutch::Config.mq_tls_key = file
+          Hutch.config.mq_tls_key = file
         end
 
         opts.on('--mq-exchange EXCHANGE',
                 'Set the RabbitMQ exchange') do |exchange|
-          Hutch::Config.mq_exchange = exchange
+          Hutch.config.mq_exchange = exchange
         end
 
         opts.on('--mq-vhost VHOST', 'Set the RabbitMQ vhost') do |vhost|
-          Hutch::Config.mq_vhost = vhost
+          Hutch.config.mq_vhost = vhost
         end
 
         opts.on('--mq-username USERNAME',
                 'Set the RabbitMQ username') do |username|
-          Hutch::Config.mq_username = username
+          Hutch.config.mq_username = username
         end
 
         opts.on('--mq-password PASSWORD',
                 'Set the RabbitMQ password') do |password|
-          Hutch::Config.mq_password = password
+          Hutch.config.mq_password = password
         end
 
         opts.on('--mq-api-host HOST', 'Set the RabbitMQ API host') do |host|
-          Hutch::Config.mq_api_host = host
+          Hutch.config.mq_api_host = host
         end
 
         opts.on('--mq-api-port PORT', 'Set the RabbitMQ API port') do |port|
-          Hutch::Config.mq_api_port = port
+          Hutch.config.mq_api_port = port
         end
 
         opts.on("-s", "--[no-]mq-api-ssl", 'Use SSL for the RabbitMQ API') do |api_ssl|
-          Hutch::Config.mq_api_ssl = api_ssl
+          Hutch.config.mq_api_ssl = api_ssl
         end
 
         opts.on('--config FILE', 'Load Hutch configuration from a file') do |file|
           begin
-            File.open(file) { |fp| Hutch::Config.load_from_file(fp) }
+            File.open(file) { |fp| Hutch.config.load_from_file(fp) }
           rescue Errno::ENOENT
             abort "Config file '#{file}' not found"
           end
         end
 
         opts.on('--require PATH', 'Require an app or path') do |path|
-          Hutch::Config.require_paths << path
+          Hutch.config.require_paths << path
         end
 
         opts.on('--[no-]autoload-app', 'Require the current app directory (Rails or Padrino)') do |autoload_app|
-          Hutch::Config.autoload_app = autoload_app
+          Hutch.config.autoload_app = autoload_app
         end
 
         opts.on('--logfile FILE', 'Log output to a file') do |file|
-          Hutch::Config.logfile = file
+          Hutch.config.logfile = file
         end
 
         opts.on('-q', '--quiet', 'Quiet logging') do
-          Hutch::Config.log_level = Logger::WARN
+          Hutch.config.log_level = Logger::WARN
         end
 
         opts.on('-v', '--verbose', 'Verbose logging') do
-          Hutch::Config.log_level = Logger::DEBUG
+          Hutch.config.log_level = Logger::DEBUG
         end
 
         opts.on('--namespace NAMESPACE', 'Queue namespace') do |namespace|
-          Hutch::Config.namespace = namespace
+          Hutch.config.namespace = namespace
         end
 
         opts.on('--version', 'Print the version and exit') do

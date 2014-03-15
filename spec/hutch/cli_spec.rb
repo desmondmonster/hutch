@@ -23,7 +23,7 @@ describe Hutch::CLI do
         end
 
         it "parses the config" do
-          Hutch::Config.should_receive(:load_from_file)
+          Hutch.config.should_receive(:load_from_file)
           cli.parse_options(["--config=#{file}"])
         end
       end
@@ -47,7 +47,7 @@ describe Hutch::CLI do
         end
 
         it "sets mq_tls_key to the file" do
-          Hutch::Config.should_receive(:mq_tls_key=)
+          Hutch.config.should_receive(:mq_tls_key=)
           cli.parse_options(["--mq-tls-key=#{file}"])
         end
       end
@@ -71,7 +71,7 @@ describe Hutch::CLI do
         end
 
         it "sets mq_tls_cert to the file" do
-          Hutch::Config.should_receive(:mq_tls_cert=)
+          Hutch.config.should_receive(:mq_tls_cert=)
           cli.parse_options(["--mq-tls-cert=#{file}"])
         end
       end

@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'hutch/broker'
 
 describe Hutch::Broker do
-  let(:config) { deep_copy(Hutch::Config.user_config) }
+  let(:config) { Hutch::Config.new }
   subject(:broker) { Hutch::Broker.new(config) }
 
   describe '#connect' do
@@ -49,7 +49,7 @@ describe Hutch::Broker do
 
       its(:connection) { should be_a Bunny::Session }
       its(:channel)    { should be_a Bunny::Channel }
-      its(:exchange_pool) { should include(Hutch::Config.get(:mq_exchange)) }
+      its(:exchange_pool) { should include(Hutch.config.get(:mq_exchange)) }
     end
 
     context 'when given invalid details' do

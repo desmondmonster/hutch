@@ -4,10 +4,10 @@ require 'logger'
 module Hutch
   class UnknownAttributeError < StandardError; end
 
-  module Config
+  class Config
     require 'yaml'
 
-    def self.initialize
+    def initialize
       @config = {
         mq_host: 'localhost',
         mq_port: 5672,
@@ -31,40 +31,38 @@ module Hutch
       }
     end
 
-    def self.get(attr)
+    def get(attr)
       check_attr(attr)
       user_config[attr]
     end
 
-    def self.set(attr, value)
+    def set(attr, value)
       check_attr(attr)
       user_config[attr] = value
     end
 
-    class << self
-      alias_method :[],  :get
-      alias_method :[]=, :set
-    end
+    alias_method :[],  :get
+    alias_method :[]=, :set
 
-    def self.check_attr(attr)
+    def check_attr(attr)
       unless user_config.key?(attr)
         raise UnknownAttributeError, "#{attr} is not a valid config attribute"
       end
     end
 
-    def self.user_config
+    def user_config
       initialize unless @config
       @config
     end
 
-    def self.load_from_file(file)
+    def load_from_file(file)
       require 'erb'
       YAML.load(ERB.new(file.read).result).each do |attr, value|
-        Hutch::Config.send("#{attr}=", value)
+        Hutch.config.send("#{attr}=", value)
       end
     end
 
-    def self.method_missing(method, *args, &block)
+    def method_missing(method, *args, &block)
       attr = method.to_s.sub(/=$/, '').to_sym
       return super unless user_config.key?(attr)
 
@@ -73,12 +71,6 @@ module Hutch
       else
         get(attr)
       end
-    end
-
-    private
-
-    def deep_copy(obj)
-      Marshal.load(Marshal.dump(obj))
     end
   end
 end

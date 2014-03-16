@@ -49,11 +49,11 @@ describe Hutch::Broker do
 
       its(:connection) { should be_a Bunny::Session }
       its(:channel)    { should be_a Bunny::Channel }
-      its(:exchange_pool) { should include(Hutch.config.get(:mq_exchange)) }
+      its(:exchange_pool) { should include(Hutch.config.mq_exchange) }
     end
 
     context 'when given invalid details' do
-      before { config[:mq_host] = 'notarealhost' }
+      before { config.mq_host = 'notarealhost' }
       let(:set_up_amqp_connection) { ->{ broker.set_up_amqp_connection } }
 
       specify { set_up_amqp_connection.should raise_error }
@@ -61,7 +61,7 @@ describe Hutch::Broker do
 
     context 'with channel_prefetch set' do
       let(:prefetch_value) { 1 }
-      before { config[:channel_prefetch] = prefetch_value }
+      before { config.channel_prefetch = prefetch_value }
       after  { broker.disconnect }
 
       it "set's channel's prefetch" do
@@ -80,7 +80,7 @@ describe Hutch::Broker do
     end
 
     context 'when given invalid details' do
-      before { config[:mq_api_host] = 'notarealhost' }
+      before { config.mq_api_host = 'notarealhost' }
       after  { broker.disconnect }
       let(:set_up_api_connection) { ->{ broker.set_up_api_connection } }
 
@@ -93,7 +93,7 @@ describe Hutch::Broker do
     before { broker.stub(:channel) { channel } }
 
     it 'applies a global namespace' do
-      config[:namespace] = 'mirror-all.service'
+      config.namespace = 'mirror-all.service'
       broker.channel.should_receive(:queue).with { |*args| args.first == 'mirror-all.service:test' }
       broker.queue('test')
     end

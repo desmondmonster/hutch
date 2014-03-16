@@ -55,7 +55,7 @@ module Hutch
       # handlers are set up. Due to this, we never got any Sentry notifications
       # when an error occurred in any of the consumers.
       if defined?(Raven)
-        Hutch.config[:error_handlers] << Hutch::ErrorHandlers::Sentry.new
+        Hutch.config.error_handlers << Hutch::ErrorHandlers::Sentry.new
       end
 
       true

@@ -7,9 +7,51 @@ module Hutch
   class Config
     require 'yaml'
 
-    def initialize
-      @config = {
-        mq_host: 'localhost',
+    def initialize(attributes = {})
+      default_attributes.each do |attr, val|
+        initialize_attribute(attr, val)
+      end
+
+      load_attributes(attributes)
+    end
+
+    def load_attributes(attrs)
+      attrs.each { |attr, val| set attr, val }
+      self
+    end
+
+    def load_from_file(file)
+      require 'erb'
+      load_attributes(YAML.load(ERB.new(file.read).result))
+    end
+
+    def method_missing(method, *args, &block)
+      if attempting_to_set_attribute?(method)
+        attr = method.to_s.sub(/=$/, '')
+        raise UnknownAttributeError, "#{attr} is not a valid config attribute"
+      else
+        super
+      end
+    end
+
+
+    private
+
+    def set(attr, val)
+      send("#{attr}=", val)
+    end
+
+    def attempting_to_set_attribute?(method)
+      method =~ /=$/
+    end
+
+    def initialize_attribute(attr, val)
+      self.class.instance_eval { attr_accessor attr }
+      set attr, val
+    end
+
+    def default_attributes
+      { mq_host: 'localhost',
         mq_port: 5672,
         mq_exchange: 'hutch',  # TODO: should this be required?
         mq_vhost: '/',
@@ -29,50 +71,7 @@ module Hutch
         namespace: nil,
         channel_prefetch: 0,
         daemonize: false,
-        pidfile: 'tmp/hutch.pid'
-      }
-    end
-
-    def get(attr)
-      check_attr(attr)
-      user_config[attr]
-    end
-
-    def set(attr, value)
-      check_attr(attr)
-      user_config[attr] = value
-    end
-
-    alias_method :[],  :get
-    alias_method :[]=, :set
-
-    def check_attr(attr)
-      unless user_config.key?(attr)
-        raise UnknownAttributeError, "#{attr} is not a valid config attribute"
-      end
-    end
-
-    def user_config
-      initialize unless @config
-      @config
-    end
-
-    def load_from_file(file)
-      require 'erb'
-      YAML.load(ERB.new(file.read).result).each do |attr, value|
-        Hutch.config.send("#{attr}=", value)
-      end
-    end
-
-    def method_missing(method, *args, &block)
-      attr = method.to_s.sub(/=$/, '').to_sym
-      return super unless user_config.key?(attr)
-
-      if method =~ /=$/
-        set(attr, args.first)
-      else
-        get(attr)
-      end
+        pidfile: 'tmp/hutch.pid' }
     end
   end
 end

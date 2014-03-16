@@ -9,9 +9,10 @@ module Hutch
     include Logging
 
     attr_accessor :connection, :channel, :api_client
+    attr_reader :config
 
-    def initialize(config = nil)
-      @config = config || Hutch.config
+    def initialize(config = Hutch.config)
+      @config = config
     end
 
     def connect(options = {})
@@ -38,18 +39,18 @@ module Hutch
       open_connection!
       open_channel!
 
-      declare_exchange(@config[:mq_exchange])
+      declare_exchange(config.mq_exchange)
     end
 
     def open_connection!
-      host     = @config[:mq_host]
-      port     = @config[:mq_port]
-      vhost    = @config[:mq_vhost]
-      username = @config[:mq_username]
-      password = @config[:mq_password]
-      tls      = @config[:mq_tls]
-      tls_key  = @config[:mq_tls_cert]
-      tls_cert = @config[:mq_tls_key]
+      host     = config.mq_host
+      port     = config.mq_port
+      vhost    = config.mq_vhost
+      username = config.mq_username
+      password = config.mq_password
+      tls      = config.mq_tls
+      tls_key  = config.mq_tls_cert
+      tls_cert = config.mq_tls_key
       protocol = tls ? "amqps://" : "amqp://"
       sanitized_uri = "#{protocol}#{username}@#{host}:#{port}/#{vhost.sub(/^\//, '')}"
       logger.info "connecting to rabbitmq (#{sanitized_uri})"
@@ -70,7 +71,7 @@ module Hutch
     def open_channel!
       logger.info 'opening rabbitmq channel'
       @channel = connection.create_channel.tap do |ch|
-        ch.prefetch(@config[:channel_prefetch]) if @config[:channel_prefetch]
+        ch.prefetch(config.channel_prefetch) if config.channel_prefetch
       end
     end
 
@@ -93,7 +94,7 @@ module Hutch
     # Create / get a durable queue and apply namespace if it exists.
     def queue(name)
       with_bunny_precondition_handler('queue') do
-        namespace = @config[:namespace].to_s.downcase.gsub(/[^-_:\.\w]/, "")
+        namespace = config.namespace.to_s.downcase.gsub(/[^-_:\.\w]/, "")
         name = name.prepend(namespace + ":") unless namespace.empty?
         channel.queue(name, durable: true)
       end
@@ -104,8 +105,8 @@ module Hutch
       results = Hash.new { |hash, key| hash[key] = [] }
       @api_client.bindings.each do |binding|
         next if binding['destination'] == binding['routing_key']
-        next unless binding['source'] == @config[:mq_exchange]
-        next unless binding['vhost'] == @config[:mq_vhost]
+        next unless binding['source'] == config.mq_exchange
+        next unless binding['vhost'] == config.mq_vhost
         results[binding['destination']] << binding['routing_key']
       end
       results
@@ -174,7 +175,7 @@ module Hutch
     end
 
     def exchange(exchange_name = nil)
-      exchange_pool.fetch(exchange_name || @config[:mq_exchange]) do |new_name|
+      exchange_pool.fetch(exchange_name || config.mq_exchange) do |new_name|
         declare_exchange(new_name)
       end
     end
@@ -209,14 +210,14 @@ module Hutch
     end
 
     def api_config
-      @api_config ||= OpenStruct.new.tap do |config|
-        config.host = @config[:mq_api_host]
-        config.port = @config[:mq_api_port]
-        config.username = @config[:mq_username]
-        config.password = @config[:mq_password]
-        config.ssl = @config[:mq_api_ssl]
-        config.protocol = config.ssl ? "https://" : "http://"
-        config.sanitized_uri = "#{config.protocol}#{config.username}@#{config.host}:#{config.port}/"
+      @api_config ||= OpenStruct.new.tap do |api|
+        api.host = config.mq_api_host
+        api.port = config.mq_api_port
+        api.username = config.mq_username
+        api.password = config.mq_password
+        api.ssl = config.mq_api_ssl
+        api.protocol = config.mq_api_ssl ? "https://" : "http://"
+        api.sanitized_uri = "#{api.protocol}#{api.username}@#{api.host}:#{api.port}/"
       end
     end
 

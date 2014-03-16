@@ -65,7 +65,7 @@ describe Hutch::Worker do
       before { consumer_instance.stub(:process).and_raise('a consumer error') }
 
       it 'logs the error' do
-        Hutch.config[:error_handlers].each do |backend|
+        Hutch.config.error_handlers.each do |backend|
           backend.should_receive(:handle)
         end
         worker.handle_message(consumer, delivery_info, properties, payload)
@@ -81,7 +81,7 @@ describe Hutch::Worker do
       let(:payload) { "Not Valid JSON" }
 
       it 'logs the error' do
-        Hutch.config[:error_handlers].each do |backend|
+        Hutch.config.error_handlers.each do |backend|
           backend.should_receive(:handle)
         end
         worker.handle_message(consumer, delivery_info, properties, payload)

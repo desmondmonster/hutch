@@ -235,5 +235,3 @@ are recommended.
 [pc-gist]: https://gist.github.com/3042381
 
 ---
-
-GoCardless ♥ open source. If you do too, come [join us](https://gocardless.com/jobs/backend_developer).

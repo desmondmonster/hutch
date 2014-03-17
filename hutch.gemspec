@@ -12,9 +12,9 @@ Gem::Specification.new do |gem|
   gem.description = 'Hutch is a Ruby library for enabling asynchronous ' +
                     'inter-service communication using RabbitMQ.'
   gem.version = Hutch::VERSION.dup
-  gem.authors = ['Harry Marr']
-  gem.email = ['developers@gocardless.com']
-  gem.homepage = 'https://github.com/gocardless/hutch'
+  gem.authors = ['Harry Marr', 'Desmond Bowe']
+  gem.email = ['desmondbowe@gmail.com']
+  gem.homepage = 'https://github.com/desmondmonster/hutch'
   gem.require_paths = ['lib']
   gem.license = 'MIT'
   gem.executables = ['hutch']

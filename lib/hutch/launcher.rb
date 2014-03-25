@@ -16,8 +16,8 @@ module Hutch
       # daemon
 
       redirect_streams
-      kill(Hutch::Config.pidfile)
-      write(Process.pid, Hutch::Config.pidfile)
+      kill(Hutch.config.pidfile)
+      write(Process.pid, Hutch.config.pidfile)
     end
 
     def self.kill(pidfile)

@@ -13,7 +13,7 @@ module Hutch
     def run
       parse_options
 
-      Hutch::Launcher.daemonize! if Hutch::Config.daemonize
+      Hutch::Launcher.daemonize! if Hutch.config.daemonize
 
       Hutch.logger.info "hutch booted with pid #{Process.pid}"
 
@@ -160,7 +160,7 @@ module Hutch
         end
 
         opts.on('-d', '--daemonize', 'Run Hutch as a background process') do
-          Hutch::Config.daemonize = true
+          Hutch.config.daemonize = true
         end
 
         opts.on('--config FILE', 'Load Hutch configuration from a file') do |file|

@@ -183,6 +183,10 @@ module Hutch
           Hutch.config.logfile = file
         end
 
+        opts.on('--pidfile PIDFILE', 'write PID to a file') do |pidfile|
+          Hutch.config.pidfile = pidfile
+        end
+
         opts.on('-q', '--quiet', 'Quiet logging') do
           Hutch.config.log_level = Logger::WARN
         end

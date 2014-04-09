@@ -44,6 +44,31 @@ describe Hutch do
     end
   end
 
+  describe '.disconnect' do
+    context 'when connected' do
+      let(:options) { double 'options' }
+      let(:config)  { double 'config' }
+      let(:broker)  { double 'broker' }
+
+      before { Hutch.connect options, config }
+
+      it 'disconnects the broker' do
+        Hutch.broker.should_receive :disconnect
+
+        Hutch.disconnect
+        expect(Hutch.connected?).to be_false
+      end
+    end
+
+    context 'when not connected' do
+      before { Hutch.stub(:connected?).and_return false }
+      it 'does nothing' do
+        Hutch::Broker.any_instance.should_not_receive :disconnect
+        Hutch.disconnect
+      end
+    end
+  end
+
   describe '#publish' do
     let(:broker) { double(Hutch::Broker) }
     let(:args) { ['test.key', 'message', { headers: { foo: 'bar' } }] }

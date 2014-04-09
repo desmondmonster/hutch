@@ -37,6 +37,13 @@ module Hutch
     end
   end
 
+  def self.disconnect
+    if connected?
+      @broker.disconnect
+      @connected = false
+    end
+  end
+
   def self.broker
     @broker
   end
